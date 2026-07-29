@@ -1,5 +1,8 @@
-# 建置產物（可由 SKILL.md + agents/ 重新打包）
-*.skill
+# 建置產物：打包好的 .skill 一併納入版控（由 build-skill.ps1 產出）
+# 若不想追蹤，改回加入 *.skill 即可。
+
+# build-skill.ps1 的暫存壓縮檔（改名為 .skill 前的中繼產物）
+*.zip
 
 # 暫存 / 系統檔
 ziUq1vEm
