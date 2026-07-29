@@ -1,0 +1,24 @@
+#!/bin/sh
+# Auto-repackage aoccqa-rule-loader.skill when the skill SOURCES change, so the
+# version-controlled artifact never drifts from SKILL.md / agents/.
+#
+# One-time activation (per clone; core.hooksPath is a local, un-pushed setting):
+#     git config core.hooksPath .githooks
+#
+# Behaviour: only rebuilds when this commit stages changes under SKILL.md or
+# agents/. A README-only (or any non-source) commit is left untouched, so the
+# .skill does not churn. build-skill.ps1 is deterministic, so an unchanged
+# source yields a byte-identical artifact anyway.
+
+# Git runs hooks from the repo top-level, so relative paths work.
+if git diff --cached --name-only | grep -Eq '^(SKILL\.md|agents/)'; then
+    echo "[pre-commit] skill sources changed -> rebuilding aoccqa-rule-loader.skill"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "build-skill.ps1"
+    if [ $? -ne 0 ]; then
+        echo "[pre-commit] build-skill.ps1 failed; aborting commit" >&2
+        exit 1
+    fi
+    git add aoccqa-rule-loader.skill
+    echo "[pre-commit] staged refreshed aoccqa-rule-loader.skill"
+fi
+exit 0

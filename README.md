@@ -261,7 +261,13 @@ generating Test Cases.
   powershell -ExecutionPolicy Bypass -File .\build-skill.ps1
   ```
 
-  > 註：勿用 PowerShell `Compress-Archive`——它會寫出反斜線路徑，部分 skill 安裝器會拒收。
+  > 註：`build-skill.ps1` 用 .NET `ZipArchive` 產生**可重現**（byte-identical）且正斜線的封裝；勿用 PowerShell `Compress-Archive`——它會寫出反斜線路徑，部分 skill 安裝器會拒收。
+
+- **自動重打包（pre-commit hook）**：repo 內附 [`.githooks/pre-commit`](.githooks/pre-commit)，會在**動到 `SKILL.md` / `agents/` 的 commit** 前自動重跑 `build-skill.ps1` 並把最新 `.skill` 一併加入該次 commit，確保版控裡的 `.skill` 永遠與原始碼同步。每個 clone 需啟用一次（`core.hooksPath` 是本地設定，不隨 push 帶走）：
+
+  ```bash
+  git config core.hooksPath .githooks
+  ```
 
 ---
 

@@ -1,0 +1,4 @@
+# Shell hooks MUST stay LF — a CRLF shebang (#!/bin/sh\r) breaks execution
+# ("bad interpreter") under Git Bash / sh on Windows.
+.githooks/* text eol=lf
+*.sh text eol=lf
