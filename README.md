@@ -255,6 +255,13 @@ generating Test Cases.
 - **Claude Cowork / Claude Code**：將本 repo（含 `SKILL.md`）放入 skills 目錄，或以 skill 安裝流程載入。
 - **OpenAI 系**：依 `agents/openai.yaml` 設定介面。
 - **打包分享**：把含 `SKILL.md` 的 `aoccqa-rule-loader/` 目錄壓成 `.skill`（zip）即可（`*.skill` 已列入 `.gitignore`，屬建置產物，可隨時由 `SKILL.md + agents/` 重新打包）。
+- **一鍵打包（Windows）**：執行 repo 內的 [`build-skill.ps1`](build-skill.ps1) 會把 `SKILL.md + agents/` 正規化為 LF、以 Windows `tar.exe` 壓成符合 ZIP 規範（正斜線）的 `aoccqa-rule-loader.skill`，並自我驗證：
+
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\build-skill.ps1
+  ```
+
+  > 註：勿用 PowerShell `Compress-Archive`——它會寫出反斜線路徑，部分 skill 安裝器會拒收。
 
 ---
 
