@@ -1,0 +1,11 @@
+interface:
+  display_name: "AOCCQA Rule Loader"
+  short_description: "Prepare reliable, traceable QA rule context"
+  default_prompt: "Use $aoccqa-rule-loader to verify the supplied rule sources, resolve their applicability per market, and produce a traceable Rule Context (Normalized Rule Context, Rule Applicability Matrix, Missing/Conflict Rule Register) without generating Test Cases."
+policy:
+  products:
+  - "chatgpt"
+  - "codex"
+  - "api"
+  - "atlas"
+  allow_implicit_invocation: true

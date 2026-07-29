@@ -1,0 +1,9 @@
+# 建置產物（可由 SKILL.md + agents/ 重新打包）
+*.skill
+
+# 暫存 / 系統檔
+ziUq1vEm
+zi*
+.DS_Store
+Thumbs.db
+*.tmp
