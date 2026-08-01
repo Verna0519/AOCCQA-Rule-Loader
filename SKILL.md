@@ -1,5 +1,6 @@
 ---
 name: aoccqa-rule-loader
+version: 1.0.0
 description: AOCCQA 測試案例產線 Phase A 步驟 3「規則整備」。當已確認的 Requirement Matrix 之外，Pass/Fail 或適用性還取決於市場規則（國別/網站/語系/幣別/時區）、身分別（Guest/Member/Admin/系統）、產品或資料型別、狀態流轉、後台設定/資格/排除、欄位對映/列舉/空值、Job/排程/觸發、或跨系統整合（前台/後台/API/SFTP/報表/Email/稽核）時，必須使用此 skill 整理出「可追溯的 Rule Context」。輸入為已確認的 Requirement Matrix、市場規則庫、Country／Product Type 條件；產出固定三件：Normalized Rule Context、Rule Applicability Matrix、Missing／Conflict Rule Register（待補／衝突規則）。規則按市場載入，只取當前需求涉及的市場，不一次載入全部國別；遇定義模糊或名詞不明時查 aoccqa-knowledge-base 與 AOCCQA_glossary。觸發詞：規則載入、規則整備、整理市場規則、Rule Context、規則適用性/權威/新鮮度/衝突、載入當前市場規則。不解析原始 FSD/PRD/截圖/Figma/API（屬 aoccqa-fsd-parser）；不替 PM/RD 決定產品行為；不產生 Coverage Gap、Test Case、Steps、Expected Result；不自行選擇互相衝突的規則；規則缺失時不得以其他市場的規則頂替。
 ---
 
