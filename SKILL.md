@@ -1,7 +1,7 @@
 ---
 name: aoccqa-rule-loader
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 description: AOCCQA 測試案例產線 Phase A 步驟 3「規則整備」。當已確認的 Requirement Matrix 之外，Pass/Fail 或適用性還取決於市場規則（國別/網站/語系/幣別/時區）、身分別（Guest/Member/Admin/系統）、產品或資料型別、狀態流轉、後台設定/資格/排除、欄位對映/列舉/空值、Job/排程/觸發、或跨系統整合（前台/後台/API/SFTP/報表/Email/稽核）時，必須使用此 skill 整理出「可追溯的 Rule Context」。輸入為已確認的 Requirement Matrix、市場規則庫、Country／Product Type 條件；產出固定三件：Normalized Rule Context、Rule Applicability Matrix、Missing／Conflict Rule Register（待補／衝突規則）。規則按市場載入，只取當前需求涉及的市場，不一次載入全部國別；遇定義模糊或名詞不明時查 aoccqa-knowledge-base 與 AOCCQA_glossary。觸發詞：規則載入、規則整備、整理市場規則、Rule Context、規則適用性/權威/新鮮度/衝突、載入當前市場規則。不解析原始 FSD/PRD/截圖/Figma/API（屬 aoccqa-fsd-parser）；不替 PM/RD 決定產品行為；不產生 Coverage Gap、Test Case、Steps、Expected Result；不自行選擇互相衝突的規則；規則缺失時不得以其他市場的規則頂替。
 ---
 
@@ -106,6 +106,8 @@ jq '.relations[]|select(.backend|test("X"))' "$KB/Definition_AOCCQA_relations.js
 jq '.relations[]|select(.feature=="X")' "$KB/Definition_AOCCQA_system_relations.json"
 # 縮寫 / 錯誤訊息原文 / API 來源
 jq '.acronyms,.error_messages,.apis' "$KB/Reference_AOCCQA_quicklookup.json"
+# Steps/Expected 下游注入點形態（本 skill 只供應內容，不產生 Steps/Expected；見下方「下游注入點對應」）
+jq '.expected_spec.verbatim_messages, .expected_spec.note_rule_block' "$KB/Guide_AOCCQA_steps_expected_spec.json"
 ```
 
 限制：查詢只用於既有事實，不得用來回答尚未決定的產品決策。每次查詢記錄：查詢字串與回傳條目、來源/版本/owner/核准狀態、生效期間與適用範圍、是否對齊當前需求版本。未核准、過期、無出處、範圍不符的條目一律視為 `Reference Only`；查無或矛盾時，規則維持 `Missing`／`Ambiguous`／`Conflict`。名詞庫只解語意、不改授權——glossary 條目不能單獨建立新 Expected Behavior。
@@ -116,13 +118,25 @@ jq '.acronyms,.error_messages,.apis' "$KB/Reference_AOCCQA_quicklookup.json"
 
 每條含：`Rule ID` 與關聯 `Requirement ID`；規則維度；適用與排除範圍；條件/觸發；執行者/執行模式；預期行為與明確禁止行為；觀察點；生效期間；來源 ID；證據狀態；下游可用性。
 
-保留字面值：欄位名、列舉值、國碼、產品型別、設定路徑、Job 名、排程時間、時區、API key、系統名。除非來源明確劃等號，下列一律保持區別：
+保留字面值：欄位名、列舉值、國碼、產品型別、設定路徑、Job 名、排程時間、時區、API key、系統名、**UI/alert/error/success 訊息原文**（逐字含標點與大小寫，供下游 Expected Result 直接引用，見下節「下游注入點對應」）。除非來源明確劃等號，下列一律保持區別：
 
 - `null`、空字串、缺欄位、0、false、未回傳；
 - 自動排程、手動執行、PM/RD 協助執行；
 - 隱藏、停用、不支援、超出範圍、不適用；
 - 軟刪除、硬刪除、停用、過期、封存；
 - 資料未變、資料缺失、資料無效、處理失敗。
+
+## Downstream injection points（下游注入點對應,不越界產出 Steps/Expected）
+
+`Guide_AOCCQA_steps_expected_spec`(知識庫,由 20 份官方 TestCase xlsx 597 列歸納,供 `aoccqa-tc-generator`/`aoccqa-scenario-expander` 渲染 Steps/Expected 的形態規則)定義三處「規則注入點」。本 skill 的責任是把 `Normalized Rule Context` **內容**準備到位、可追溯,**不**自行組裝或格式化成 Steps/Expected 文字——渲染永遠是 generator/expander 的職責,此節不改變本 skill「絕不產生 Coverage Gap、Test Case、Steps、Expected Result」的既有邊界。
+
+| 注入點 | 下游用途 | 本 skill 對應供應的 Rule Context 欄位 |
+|---|---|---|
+| ① Pre-condition given 狀態 | Steps/Expected 執行前的前提 | `Applicable Scope`、`Condition/Trigger`、`Effective Period` |
+| ② Expected `[Note]` 規則塊(`(1)…(2)…→` 決策條件句) | 表述底層業務規則的條件-結果對照 | 同一 `Rule ID` 家族下**逐條原子規則**:每條 atomic rule 的 `Condition/Trigger → Expected Behavior`/`Prohibited Behavior` 本身即為一個 `(n)` 條件句;家族內多條規則依序排列即組成完整規則塊 |
+| ③ Expected 內嵌錯誤訊息原文(`==>`) | UI/alert/error/success 訊息逐字引用 | `Expected Behavior`/`Prohibited Behavior` 中若含可觀察訊息文字,須逐字保留(見上節「保留字面值」),並標明 `Source ID` 供追溯 |
+
+> 下游 generator 讀 `Normalized Rule Context` 時,依 `Rule ID` 分組取出對應規則家族即可渲染成 ②③;不需本 skill 額外輸出 Steps/Expected 草稿或決策表文字。
 
 ## Evidence status and usability（證據狀態與可用性）
 
@@ -180,6 +194,7 @@ jq '.acronyms,.error_messages,.apis' "$KB/Reference_AOCCQA_quicklookup.json"
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 > 用穩定 ID 如 `RULE-001`。措辭釐清時保留原 Rule ID；商業語意改變時建新版本或新 ID。
+> `Expected Behavior`／`Prohibited Behavior` 若含可觀察 UI/訊息文字,逐字保留(不摘要改寫);下游依 `Rule ID` 家族渲染 `Guide_AOCCQA_steps_expected_spec` 的三處注入點(見「Atomic rule model」後的「Downstream injection points」)。
 
 ### 4. Rule Applicability Matrix
 
