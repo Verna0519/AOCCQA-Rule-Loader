@@ -1,7 +1,7 @@
 ---
 name: aoccqa-rule-loader
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 description: AOCCQA 測試案例產線 Phase A 步驟 3「規則整備」。當已確認的 Requirement Matrix 之外，Pass/Fail 或適用性還取決於市場規則（國別/網站/語系/幣別/時區）、身分別（Guest/Member/Admin/系統）、產品或資料型別、狀態流轉、後台設定/資格/排除、欄位對映/列舉/空值、Job/排程/觸發、或跨系統整合（前台/後台/API/SFTP/報表/Email/稽核）時，必須使用此 skill 整理出「可追溯的 Rule Context」。輸入為已確認的 Requirement Matrix、市場規則庫、Country／Product Type 條件；產出固定三件：Normalized Rule Context、Rule Applicability Matrix、Missing／Conflict Rule Register（待補／衝突規則）。規則按市場載入，只取當前需求涉及的市場，不一次載入全部國別；遇定義模糊或名詞不明時查 aoccqa-knowledge-base 與 AOCCQA_glossary。觸發詞：規則載入、規則整備、整理市場規則、Rule Context、規則適用性/權威/新鮮度/衝突、載入當前市場規則。不解析原始 FSD/PRD/截圖/Figma/API（屬 aoccqa-fsd-parser）；不替 PM/RD 決定產品行為；不產生 Coverage Gap、Test Case、Steps、Expected Result；不自行選擇互相衝突的規則；規則缺失時不得以其他市場的規則頂替。
 ---
 
@@ -108,6 +108,8 @@ jq '.relations[]|select(.feature=="X")' "$KB/Definition_AOCCQA_system_relations.
 jq '.acronyms,.error_messages,.apis' "$KB/Reference_AOCCQA_quicklookup.json"
 # Steps/Expected 下游注入點形態（本 skill 只供應內容，不產生 Steps/Expected；見下方「下游注入點對應」）
 jq '.expected_spec.verbatim_messages, .expected_spec.note_rule_block' "$KB/Guide_AOCCQA_steps_expected_spec.json"
+# Pre-condition 形態（注入點①：留白 vs 明寫判準、四桶分類、行數分佈——本 skill 只供應內容，欄位本身仍是 generator 產出）
+jq '.columns["Pre-condition"]' "$KB/Guide_AOCCQA_steps_expected_spec.json"
 ```
 
 限制：查詢只用於既有事實，不得用來回答尚未決定的產品決策。每次查詢記錄：查詢字串與回傳條目、來源/版本/owner/核准狀態、生效期間與適用範圍、是否對齊當前需求版本。未核准、過期、無出處、範圍不符的條目一律視為 `Reference Only`；查無或矛盾時，規則維持 `Missing`／`Ambiguous`／`Conflict`。名詞庫只解語意、不改授權——glossary 條目不能單獨建立新 Expected Behavior。
@@ -132,7 +134,7 @@ jq '.expected_spec.verbatim_messages, .expected_spec.note_rule_block' "$KB/Guide
 
 | 注入點 | 下游用途 | 本 skill 對應供應的 Rule Context 欄位 |
 |---|---|---|
-| ① Pre-condition given 狀態 | Steps/Expected 執行前的前提 | `Applicable Scope`、`Condition/Trigger`、`Effective Period` |
+| ① Pre-condition given 狀態 | Steps/Expected 執行前的前提 | `Applicable Scope`、`Condition/Trigger`、`Effective Period`;寫法形態對照 `.columns["Pre-condition"]`(留白 vs 明寫「無特殊前置條件」的判準、四桶分類、行數分佈) |
 | ② Expected `[Note]` 規則塊(`(1)…(2)…→` 決策條件句) | 表述底層業務規則的條件-結果對照 | 同一 `Rule ID` 家族下**逐條原子規則**:每條 atomic rule 的 `Condition/Trigger → Expected Behavior`/`Prohibited Behavior` 本身即為一個 `(n)` 條件句;家族內多條規則依序排列即組成完整規則塊 |
 | ③ Expected 內嵌錯誤訊息原文(`==>`) | UI/alert/error/success 訊息逐字引用 | `Expected Behavior`/`Prohibited Behavior` 中若含可觀察訊息文字,須逐字保留(見上節「保留字面值」),並標明 `Source ID` 供追溯 |
 
