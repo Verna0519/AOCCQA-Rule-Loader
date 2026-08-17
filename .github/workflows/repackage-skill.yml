@@ -3,9 +3,16 @@ name: Repackage Skill
 # Mirrors .githooks/pre-commit, but runs in CI so changes merged via a GitHub
 # PR (which never execute a local git hook) still get a refreshed
 # aoccqa-rule-loader.skill. Triggers only when the skill sources actually
-# change, and skips its own follow-up commit via the "[skip ci]" marker
+# change, and skips its own follow-up commit via the skip-CI marker
 # (a GitHub-native convention: any push whose head commit message contains
 # it does not trigger further workflow runs), so this cannot loop.
+#
+# GOTCHA: GitHub scans the ENTIRE head commit message (subject AND body) for
+# that skip marker, not just the subject line. A normal commit that merely
+# MENTIONS the marker string anywhere in its body will be silently skipped.
+# So do not write the literal skip token in commit messages unless you truly
+# intend to skip CI. (Learned the hard way: a revert commit whose body quoted
+# the token got skipped even though it changed SKILL.md.)
 
 on:
   push:
