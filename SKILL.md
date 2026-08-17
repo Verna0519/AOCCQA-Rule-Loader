@@ -229,3 +229,5 @@ jq '.columns["Pre-condition"]' "$KB/Guide_AOCCQA_steps_expected_spec.json"
 - 每個缺失/模糊/過期/不可取得/衝突的規則都可見（待補規則已列出）；
 - 沒有規則繼承自其他市場、專案、Test Case 或最佳實務；
 - 沒有產生任何 Coverage Gap 或 Test Case 內容。
+
+<!-- ci-workflow-test: verifying repackage-skill.yml auto-repackage on push to main (temporary, will be reverted) -->
