@@ -269,6 +269,8 @@ generating Test Cases.
   git config core.hooksPath .githooks
   ```
 
+- **CI 補位（GitHub Actions）**：[`.github/workflows/repackage-skill.yml`](.github/workflows/repackage-skill.yml) 是上面 pre-commit hook 的雲端對應版——透過 GitHub 網頁 PR 合併的變更不會跑本機 hook，所以這個 workflow 監看 push 到 `main` 且動到 `SKILL.md`／`agents/**`／`build-skill.ps1` 的情況，自動重打包並把 `.skill` 補一個 commit 推回去。它的回填 commit 訊息帶 `[skip ci]`（GitHub 原生慣例：訊息含此標記的 push 不會再觸發 workflow），因此不會迴圈。**沒有本機 hook 可用時（例如純走 PR 流程），這個 workflow 是唯一保證 `.skill` 不漂移的機制。**
+
 ---
 
 ## 6. 邊界與相依

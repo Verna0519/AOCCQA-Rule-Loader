@@ -1,0 +1,48 @@
+name: Repackage Skill
+
+# Mirrors .githooks/pre-commit, but runs in CI so changes merged via a GitHub
+# PR (which never execute a local git hook) still get a refreshed
+# aoccqa-rule-loader.skill. Triggers only when the skill sources actually
+# change, and skips its own follow-up commit via the "[skip ci]" marker
+# (a GitHub-native convention: any push whose head commit message contains
+# it does not trigger further workflow runs), so this cannot loop.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SKILL.md'
+      - 'agents/**'
+      - 'build-skill.ps1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repackage-skill-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  repackage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild aoccqa-rule-loader.skill
+        shell: pwsh
+        run: ./build-skill.ps1
+
+      - name: Commit refreshed .skill if it changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- aoccqa-rule-loader.skill; then
+            echo "aoccqa-rule-loader.skill already matches SKILL.md/agents; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add aoccqa-rule-loader.skill
+          git commit -m "build: auto-repackage aoccqa-rule-loader.skill [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
